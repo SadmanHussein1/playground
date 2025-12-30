@@ -61,11 +61,11 @@
 
         // --- Configuration ---
         const config = {
-            rotationSpeed: 0.5,
+            rotationSpeed: 0.0, // Earth/Camera rotation disabled
             earthRadius: 5,
-            // Scale: How high/deep the features are
             displacementScale: 0.525, 
-            dayNightCycleDuration: 48, 
+            // CHANGED: Speed up factor 2 (48s -> 24s)
+            dayNightCycleDuration: 24, 
         };
 
         // --- Scene Setup ---
@@ -85,13 +85,13 @@
         // --- Controls ---
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
+        controls.dampingFactor = 0.005;
         controls.enablePan = false; 
-        controls.minDistance = 7.5;   
-        controls.maxDistance = 50;  
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = config.rotationSpeed;
-        controls.zoomSpeed = 2.0;
+        controls.minDistance = 10;   
+        controls.maxDistance = 40;  
+        // CHANGED: Disabled auto rotate of the camera
+        controls.autoRotate = false;
+        controls.zoomSpeed = 3.0;
 
         // --- Lighting ---
         const ambientLight = new THREE.AmbientLight(0x404040, 0.02);
@@ -123,15 +123,10 @@
         
         // --- TEXTURES ---
         const textureURLs = {
-            // High-Res Color Map (User Provided)
             color: 'https://sbcode.net/topoearth/downloads/worldColour.5400x2700.jpg',
-            
-            // DEDICATED HEIGHT MAP: Grayscale (White=High, Black=Deep)
             height: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/World_elevation_map.png/2560px-World_elevation_map.png',
-            
             specular: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg',
             lights: 'https://upload.wikimedia.org/wikipedia/commons/b/ba/The_earth_at_night.jpg',
-            // Galaxy / Stars Background - Using the ESO image but scaled for performance
             galaxy: 'https://upload.wikimedia.org/wikipedia/commons/6/60/ESO_-_Milky_Way.jpg',
         };
 
@@ -150,7 +145,7 @@
             bumpMap: textureLoader.load(textureURLs.height),
             bumpScale: 0.2, 
             
-            // SPECULAR (Reflections)
+            // SPECULAR
             specularMap: textureLoader.load(textureURLs.specular),
             specular: new THREE.Color(0x222222), 
             shininess: 25, 
@@ -200,10 +195,14 @@
         };
 
         const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+        
+        // Axial Tilt
+        earth.rotation.z = 23.4 * Math.PI / 180; 
+        earth.rotation.y = -1.5; 
+        
         scene.add(earth);
 
         // --- Background Stars (Universe) ---
-        // Using a Custom Shader Material to control brightness and density
         const starGeometry = new THREE.SphereGeometry(90, 64, 64);
         
         const starMaterial = new THREE.ShaderMaterial({
@@ -225,11 +224,9 @@
                     vec3 color = texColor.rgb;
                     
                     // 1. CRUSH: Raising the power (gamma) hides faint stars and noise
-                    // Higher number = fewer stars visible
                     color = pow(color, vec3(3.0));
                     
                     // 2. DARKEN: Scale down overall brightness
-                    // Lower number = darker universe
                     color = color * 1.0;
                     
                     gl_FragColor = vec4(color, 1.0);
@@ -243,6 +240,9 @@
 
         // --- Helpers ---
         const clock = new THREE.Clock();
+        
+        // State for sun orbit
+        let sunAngle = 0;
 
         // --- Animation Loop ---
         function animate() {
@@ -252,9 +252,22 @@
 
             controls.update();
 
-            // Earth Rotation
-            const rotationStep = (1 * Math.PI) / config.dayNightCycleDuration * delta;
-            earth.rotation.y += rotationStep;
+            // 1. Earth Rotation: DISABLED per request
+            // earth.rotation.y += ... 
+
+            // 2. Stars Rotation: ENABLED
+            starField.rotation.y += 0.0005;
+
+            // 3. Sun Rotation (Day/Night Cycle): ENABLED & FASTER
+            // Since Earth is static, we orbit the Sun around the Earth to simulate day/night
+            const sunSpeed = (2 * Math.PI) / config.dayNightCycleDuration * delta;
+            sunAngle += sunSpeed;
+            
+            // Move sun in a circle around Y axis (roughly)
+            // We adjust Z and X to create the orbit
+            const sunDistance = 20;
+            sunLight.position.x = Math.cos(sunAngle) * sunDistance;
+            sunLight.position.z = Math.sin(sunAngle) * sunDistance;
 
             // Update Sun Direction in Shader
             if (earthMaterial.userData.shader) {
