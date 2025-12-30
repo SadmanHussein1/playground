@@ -1,1 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Center</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #000000; /* Pure Black */
+            color: #d4d4d4; /* Neutral 300 */
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #171717; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #404040; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #525252; 
+        }
+        
+        /* Selection color */
+        ::selection {
+            background-color: rgba(6, 182, 212, 0.4);
+            color: #ffffff;
+        }
+
+        #parallax-bg {
+            /* Static background positioning */
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden">
+
+    <!-- Background Container -->
+    <div class="fixed inset-0 w-full h-full -z-50 overflow-hidden pointer-events-none bg-black">
+        <!-- Static Milky Way Image -->
+        <div id="parallax-bg" 
+             class="absolute bg-cover bg-center opacity-80"
+             style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/6/60/ESO_-_Milky_Way.jpg');">
+        </div>
+        
+        <!-- Vignette & Tint Overlays -->
+        <!-- 1. Darken and neutralize -->
+        <div class="absolute inset-0 bg-neutral-950/50 mix-blend-multiply"></div>
+        <!-- 2. Radial Gradient to focus center -->
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_#000000_90%)]"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 top-0 border-b border-white/5 bg-black/40 backdrop-blur-md transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 group cursor-pointer">
+                    <div class="w-8 h-8 rounded-full bg-neutral-900 border border-neutral-700 flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.1)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all">
+                        <div class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                    </div>
+                    <span class="text-white font-bold tracking-wider text-sm hidden sm:block group-hover:text-cyan-400 transition-colors">
+                        COMMAND <span class="text-neutral-500">///</span> CENTER
+                    </span>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#" class="text-neutral-400 hover:text-white px-3 py-2 rounded-md text-xs font-medium transition-all hover:tracking-widest uppercase tracking-wider">Status</a>
+                        <a href="#" class="text-neutral-400 hover:text-white px-3 py-2 rounded-md text-xs font-medium transition-all hover:tracking-widest uppercase tracking-wider">Logs</a>
+                        <a href="#" class="text-neutral-400 hover:text-white px-3 py-2 rounded-md text-xs font-medium transition-all hover:tracking-widest uppercase tracking-wider">Network</a>
+                        <a href="#" class="text-neutral-400 hover:text-white px-3 py-2 rounded-md text-xs font-medium transition-all hover:tracking-widest uppercase tracking-wider">Access</a>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all">
+                        <i data-lucide="menu" class="h-6 w-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="hidden md:hidden bg-black/95 border-b border-white/10 backdrop-blur-xl">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#" class="text-neutral-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Status</a>
+                <a href="#" class="text-neutral-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Logs</a>
+                <a href="#" class="text-neutral-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Network</a>
+                <a href="#" class="text-neutral-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Access</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="pt-32 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative z-10">
+        <div class="text-center py-20 sm:py-32">
+            <div class="inline-flex items-center px-4 py-1.5 rounded-full border border-neutral-700 bg-black/50 backdrop-blur-sm text-cyan-400 text-xs font-mono font-medium mb-8 uppercase tracking-widest animate-pulse-slow hover:border-cyan-500/50 transition-colors cursor-default">
+                <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></span>
+                Test 1
+            </div>
+            <h1 class="text-5xl sm:text-7xl font-extrabold text-white tracking-tighter mb-8 drop-shadow-2xl">
+                CORE <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-500 to-purple-600 animate-pulse-slow">SYSTEMS</span>
+            </h1>
+            <p class="max-w-2xl mx-auto text-lg sm:text-xl text-neutral-400 leading-relaxed font-mono drop-shadow-lg">
+                Test 2
+            </p>
+        </div>
+
+        <!-- Grid Section -->
+        <div class="mt-20">
+            <div class="flex items-center justify-between mb-10 border-b border-neutral-800 pb-4">
+                <h2 class="text-2xl font-bold text-white flex items-center drop-shadow-md">
+                    <span class="w-1 h-6 bg-gradient-to-b from-cyan-400 to-blue-600 rounded-full mr-4 shadow-[0_0_15px_rgba(8,145,178,0.8)]"></span>
+                    Test 3
+                </h2>
+                <div class="text-xs font-mono text-neutral-500 border border-neutral-800 px-3 py-1 rounded bg-black/50 backdrop-blur-sm">
+                    INDEX: 01-08
+                </div>
+            </div>
+            
+            <!-- Project Grid Container -->
+            <div id="project-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 perspective-1000">
+                <!-- Javascript will inject cards here -->
+            </div>
+        </div>
+
+        <!-- Tech Stack Ticker -->
+        <div class="mt-32 border-t border-neutral-900 pt-12">
+           <div class="flex flex-wrap justify-center gap-12 opacity-40 hover:opacity-100 transition-opacity duration-700 grayscale hover:grayscale-0">
+             <span class="text-sm font-mono font-bold text-neutral-500 tracking-[0.2em] hover:text-cyan-400 transition-colors cursor-default">REACT</span>
+             <span class="text-sm font-mono font-bold text-neutral-500 tracking-[0.2em] hover:text-green-400 transition-colors cursor-default">PYTHON</span>
+             <span class="text-sm font-mono font-bold text-neutral-500 tracking-[0.2em] hover:text-yellow-400 transition-colors cursor-default">SOLIDITY</span>
+             <span class="text-sm font-mono font-bold text-neutral-500 tracking-[0.2em] hover:text-blue-400 transition-colors cursor-default">TYPESCRIPT</span>
+             <span class="text-sm font-mono font-bold text-neutral-500 tracking-[0.2em] hover:text-purple-400 transition-colors cursor-default">PYTORCH</span>
+             <span class="text-sm font-mono font-bold text-neutral-500 tracking-[0.2em] hover:text-orange-400 transition-colors cursor-default">FIREBASE</span>
+           </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-neutral-900 bg-black/60 backdrop-blur-md mt-24 relative z-10">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <p class="text-neutral-500 text-sm font-mono">
+                © 2025 SYSTEMS. All rights reserved.
+            </p>
+            <div class="flex space-x-6 mt-4 md:mt-0">
+                <div class="flex items-center space-x-2 px-3 py-1 rounded-full bg-neutral-900/50 border border-neutral-800">
+                    <div class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]"></div>
+                    <span class="text-[10px] font-mono text-neutral-400 tracking-wider">SIGNAL: STRONG</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Main Logic Script -->
+    <script>
+        // --- DATA CONFIGURATION ---
+        // Replacing "Slate" references with Neutral/Zinc colors
+        const projects = [
+            {
+                title: "pro1",
+                icon: "brain",
+                colorClass: "from-purple-600 to-indigo-600",
+                description: "01",
+                link: "#"
+            },
+            {
+                title: "pro2",
+                icon: "microscope",
+                colorClass: "from-emerald-600 to-teal-600",
+                description: "02",
+                link: "#"
+            },
+            {
+                title: "pro3",
+                icon: "trending-up",
+                colorClass: "from-amber-500 to-orange-600",
+                description: "03",
+                link: "#"
+            },
+            {
+                title: "pro4",
+                icon: "activity",
+                colorClass: "from-rose-600 to-red-600",
+                description: "04",
+                link: "#"
+            },
+            {
+                title: "pro5",
+                icon: "database",
+                colorClass: "from-blue-600 to-cyan-600",
+                description: "05",
+                link: "#"
+            },
+            {
+                title: "pro6",
+                icon: "atom",
+                colorClass: "from-indigo-500 to-violet-500",
+                description: "06",
+                link: "#"
+            },
+            {
+                title: "pro7",
+                icon: "code",
+                colorClass: "from-neutral-500 to-neutral-700",
+                description: "07",
+                link: "#"
+            },
+            {
+                title: "pro8",
+                icon: "globe",
+                colorClass: "from-cyan-500 to-sky-500",
+                description: "08",
+                link: "#"
+            }
+        ];
+
+        // --- RENDER PROJECTS ---
+        const gridContainer = document.getElementById('project-grid');
+        
+        projects.forEach((project, index) => {
+            const cardHTML = `
+                <div class="group relative bg-neutral-900/40 backdrop-blur-md border border-neutral-800 rounded-xl overflow-hidden hover:border-cyan-500/40 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(6,182,212,0.15)] flex flex-col h-full">
+                    <!-- Hover Glow Effect -->
+                    <div class="absolute inset-0 bg-gradient-to-br ${project.colorClass} opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
+                    
+                    <div class="p-6 flex flex-col h-full relative z-10">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="p-3 rounded-lg bg-black/40 group-hover:bg-neutral-900 transition-colors border border-neutral-800 group-hover:border-cyan-500/20 shadow-inner">
+                                <i data-lucide="${project.icon}" class="w-6 h-6 text-neutral-400 group-hover:text-cyan-400 transition-colors duration-300"></i>
+                            </div>
+                            <div class="text-[10px] font-mono text-neutral-600 group-hover:text-cyan-500/70 transition-colors">
+                                ID: ${String(index + 1).padStart(2, '0')}
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-lg font-bold text-neutral-100 mb-2 tracking-tight group-hover:text-cyan-100 transition-colors">
+                            ${project.title}
+                        </h3>
+                        
+                        <p class="text-neutral-500 text-sm mb-6 flex-grow leading-relaxed group-hover:text-neutral-400 transition-colors">
+                            ${project.description}
+                        </p>
+
+                        <a href="${project.link}" class="inline-flex items-center text-xs font-bold text-cyan-600 hover:text-cyan-400 transition-colors group/link mt-auto uppercase tracking-wider">
+                            <span class="mr-2">Access</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5 transform group-hover/link:translate-x-1 transition-transform"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+            gridContainer.insertAdjacentHTML('beforeend', cardHTML);
+        });
+
+        // Initialize Icons
+        lucide.createIcons();
+
+        // --- MOBILE MENU LOGIC ---
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) {
+                btn.innerHTML = '<i data-lucide="menu" class="h-6 w-6"></i>';
+            } else {
+                btn.innerHTML = '<i data-lucide="x" class="h-6 w-6"></i>';
+            }
+            lucide.createIcons();
+        });
+
+    </script>
+</body>
+</html>
