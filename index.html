@@ -85,13 +85,16 @@
         // --- Controls ---
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.dampingFactor = 0.005;
+        controls.dampingFactor = 0.05;
         controls.enablePan = false; 
         controls.minDistance = 10;   
         controls.maxDistance = 40;  
         // CHANGED: Disabled auto rotate of the camera
         controls.autoRotate = false;
-        controls.zoomSpeed = 3.0;
+        controls.zoomSpeed = 2.0;
+
+        // CHANGED: Rotate speed reduced by factor 0.5 (Default is 1.0)
+        controls.rotateSpeed = 0.5;
 
         // --- Lighting ---
         const ambientLight = new THREE.AmbientLight(0x404040, 0.02);
