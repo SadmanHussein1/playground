@@ -3,231 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Portfolio</title>
+    <title>Interactive 3D Earth</title>
     <style>
-        /* --- CSS VARIABLES (Easy to change colors here) --- */
-        :root {
-            --bg-color: #0f172a;       /* Dark Blue/Slate Background */
-            --card-bg: #1e293b;        /* Lighter Slate for cards */
-            --text-main: #f8fafc;      /* Almost White */
-            --text-muted: #94a3b8;     /* Grey text */
-            --accent: #38bdf8;         /* Light Blue Accent (Science/Medical feel) */
-            --nav-height: 60px;
-        }
-
-        /* --- RESET & BASICS --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            line-height: 1.6;
-        }
-
-        a { text-decoration: none; color: inherit; transition: 0.2s; }
-        ul { list-style: none; }
-
-        /* --- NAVIGATION BAR --- */
-        .navbar {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            height: var(--nav-height);
-            background: rgba(15, 23, 42, 0.9); /* Semi-transparent */
-            backdrop-filter: blur(10px);       /* Glass effect */
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-            z-index: 1000;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--accent);
-            letter-spacing: 1px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-links a:hover {
-            color: var(--accent);
-        }
-
-        /* --- LAYOUT CONTAINERS --- */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-            margin-top: var(--nav-height); /* Prevent content hiding behind nav */
-        }
-
-        /* --- HERO SECTION (Homepage Intro) --- */
-        .hero {
-            text-align: center;
-            padding: 4rem 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* --- PROJECTS GRID --- */
-        .section-title {
-            margin: 3rem 0 1.5rem 0;
-            font-size: 2rem;
-            border-left: 4px solid var(--accent);
-            padding-left: 1rem;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        /* --- PROJECT CARD --- */
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
+            margin: 0;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            border-color: var(--accent);
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
         }
-
-        .card-img-placeholder {
-            height: 180px;
-            background: linear-gradient(45deg, #1e293b, #334155);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: rgba(255,255,255,0.1);
-        }
-
-        .card-content {
-            padding: 1.5rem;
-        }
-
-        .card h3 { margin-bottom: 0.5rem; }
-        
-        .card p { 
-            color: var(--text-muted); 
-            font-size: 0.9rem; 
-            margin-bottom: 1.5rem;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background-color: var(--accent);
-            color: #0f172a;
-            font-weight: 600;
-            border-radius: 6px;
-        }
-        
-        .btn:hover { background-color: #7dd3fc; }
-
-        /* --- FOOTER --- */
-        footer {
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
             text-align: center;
-            padding: 3rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-top: 4rem;
-            border-top: 1px solid rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.5);
+            padding: 20px;
+            border-radius: 8px;
         }
-
-        /* --- MOBILE RESPONSIVENESS --- */
-        @media (max-width: 768px) {
-            .navbar { padding: 0 1rem; }
-            .nav-links { display: none; } /* Hidden on mobile for simplicity */
-            .hero h1 { font-size: 2rem; }
+        #error-msg {
+            color: #ff6b6b;
+            font-size: 0.8rem;
+            margin-top: 10px;
         }
     </style>
+    <!-- Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
 </head>
 <body>
 
-    <!-- TOPBAR -->
-    <nav class="navbar">
-        <div class="logo">MyPortfolio</div>
-        <ul class="nav-links">
-            <li><a href="#home">Home</a></li>
-            <li><a href="#projects">Projects</a></li>
-            <li><a href="#about">About</a></li>
-        </ul>
-    </nav>
+    <div id="loading">
+        LOADING UNIVERSE...
+        <div id="error-msg"></div>
+    </div>
+    <div id="canvas-container"></div>
 
-    <!-- MAIN CONTENT -->
-    <div class="container" id="home">
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- Configuration ---
+        const config = {
+            rotationSpeed: 0.5,
+            earthRadius: 5,
+            // Scale: How high/deep the features are
+            displacementScale: 0.525, 
+            dayNightCycleDuration: 48, 
+        };
+
+        // --- Scene Setup ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000); 
         
-        <!-- HERO -->
-        <section class="hero">
-            <h1>Welcome.</h1>
-        </section>
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 16);
 
-        <!-- PROJECTS SECTION -->
-        <h2 class="section-title" id="projects">My Projects</h2>
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // --- Controls ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.enablePan = false; 
+        controls.minDistance = 7.5;   
+        controls.maxDistance = 50;  
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = config.rotationSpeed;
+        controls.zoomSpeed = 2.0;
+
+        // --- Lighting ---
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.02);
+        scene.add(ambientLight);
+
+        const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
+        sunLight.position.set(15, 5, 10);
+        scene.add(sunLight);
         
-        <div class="grid">
+        const rimLight = new THREE.DirectionalLight(0xccccff, 0.1);
+        rimLight.position.set(-10, 0, -10);
+        scene.add(rimLight);
 
-            <!-- PROJECT 1: EARTH MAP -->
-            <!-- Instructions: Ensure your earth map file is named 'earth.html' in the repo -->
-            <article class="card">
-                <div class="card-img-placeholder">🌍</div>
-                <div class="card-content">
-                    <h3>Interactive 3D Earth</h3>
-                    <p>A WebGL simulation using Three.js. Features day/night cycles, topography, and touch controls.</p>
-                    <a href="earth.html" class="btn">Launch Project</a>
-                </div>
-            </article>
+        // --- Loading Manager ---
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error-msg');
+        
+        const manager = new THREE.LoadingManager();
+        manager.onLoad = function ( ) {
+            loadingEl.style.opacity = 0;
+            setTimeout(() => loadingEl.remove(), 1000);
+        };
+        manager.onError = function ( url ) {
+            console.log( 'Error loading ' + url );
+            errorEl.innerText = "Error loading assets.";
+        };
 
-            <!-- PROJECT 2: Placeholder -->
-            <article class="card">
-                <div class="card-img-placeholder">🧬</div>
-                <div class="card-content">
-                    <h3>Project2</h3>
-                    <p>Coming soon.</p>
-                    <a href="#" class="btn" style="opacity: 0.5; pointer-events: none;">Coming Soon</a>
-                </div>
-            </article>
+        const textureLoader = new THREE.TextureLoader(manager);
+        
+        // --- TEXTURES ---
+        const textureURLs = {
+            // High-Res Color Map (User Provided)
+            color: 'https://sbcode.net/topoearth/downloads/worldColour.5400x2700.jpg',
+            
+            // DEDICATED HEIGHT MAP: Grayscale (White=High, Black=Deep)
+            height: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/World_elevation_map.png/2560px-World_elevation_map.png',
+            
+            specular: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg',
+            lights: 'https://upload.wikimedia.org/wikipedia/commons/b/ba/The_earth_at_night.jpg',
+            // Galaxy / Stars Background - Using the ESO image but scaled for performance
+            galaxy: 'https://upload.wikimedia.org/wikipedia/commons/6/60/ESO_-_Milky_Way.jpg',
+        };
 
-            <!-- PROJECT 3: Placeholder -->
-            <article class="card">
-                <div class="card-img-placeholder">📈</div>
-                <div class="card-content">
-                    <h3>Project3</h3>
-                    <p>Coming soon</p>
-                    <a href="#" class="btn" style="opacity: 0.5; pointer-events: none;">Coming Soon</a>
-                </div>
-            </article>
+        // --- Earth Material (Phong) ---
+        const earthGeometry = new THREE.SphereGeometry(config.earthRadius, 512, 256); 
+        
+        const earthMaterial = new THREE.MeshPhongMaterial({
+            map: textureLoader.load(textureURLs.color),
+            
+            // DISPLACEMENT
+            displacementMap: textureLoader.load(textureURLs.height),
+            displacementScale: config.displacementScale,
+            displacementBias: -0.15, 
+            
+            // BUMP
+            bumpMap: textureLoader.load(textureURLs.height),
+            bumpScale: 0.2, 
+            
+            // SPECULAR (Reflections)
+            specularMap: textureLoader.load(textureURLs.specular),
+            specular: new THREE.Color(0x222222), 
+            shininess: 25, 
+            
+            emissiveMap: textureLoader.load(textureURLs.lights),
+            emissive: new THREE.Color(0xffcc33), 
+            emissiveIntensity: 1, 
+        });
 
+        // Inject Custom Shader Logic (Night Lights)
+        earthMaterial.onBeforeCompile = function(shader) {
+            shader.uniforms.sunDirView = { value: new THREE.Vector3(0, 0, 1) };
+            
+            shader.fragmentShader = 'uniform vec3 sunDirView;\n' + shader.fragmentShader;
 
-    <!-- FOOTER -->
-    <footer>
-        <p>&copy; 2025 Bern, Switzerland.</p>
-    </footer>
+            shader.fragmentShader = shader.fragmentShader.replace(
+                '#include <emissivemap_fragment>',
+                `
+                #ifdef USE_EMISSIVEMAP
+                    vec4 emissiveColor = texture2D( emissiveMap, vMapUv );
+                    
+                    vec3 normNormal = normalize(vNormal);
+                    vec3 normSunDir = normalize(sunDirView);
+                    
+                    float sunDot = dot(normNormal, normSunDir);
+                    
+                    // Twilight mask
+                    float nightMask = 1.0 - smoothstep(-0.2, 0.1, sunDot);
+                    
+                    // --- RAW TEXTURE PROCESSING ---
+                    vec3 rawLights = emissiveColor.rgb;
+                    
+                    // Thresholding (Anti-Haze)
+                    float threshold = 0.25; 
+                    vec3 clippedLights = max(vec3(0.0), rawLights - threshold) * (1.0 / (1.0 - threshold));
+                    
+                    // Apply Amber Tint
+                    vec3 finalLights = clippedLights * emissive;
+                    
+                    // Output with intensity boost
+                    totalEmissiveRadiance = finalLights * nightMask * 6.0; 
+                #endif
+                `
+            );
+            
+            earthMaterial.userData.shader = shader;
+        };
 
+        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+        scene.add(earth);
+
+        // --- Background Stars (Universe) ---
+        // Using a Custom Shader Material to control brightness and density
+        const starGeometry = new THREE.SphereGeometry(90, 64, 64);
+        
+        const starMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                galaxyTexture: { value: textureLoader.load(textureURLs.galaxy) }
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D galaxyTexture;
+                varying vec2 vUv;
+                void main() {
+                    vec4 texColor = texture2D(galaxyTexture, vUv);
+                    vec3 color = texColor.rgb;
+                    
+                    // 1. CRUSH: Raising the power (gamma) hides faint stars and noise
+                    // Higher number = fewer stars visible
+                    color = pow(color, vec3(3.0));
+                    
+                    // 2. DARKEN: Scale down overall brightness
+                    // Lower number = darker universe
+                    color = color * 1.0;
+                    
+                    gl_FragColor = vec4(color, 1.0);
+                }
+            `,
+            side: THREE.BackSide
+        });
+
+        const starField = new THREE.Mesh(starGeometry, starMaterial);
+        scene.add(starField);
+
+        // --- Helpers ---
+        const clock = new THREE.Clock();
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const delta = clock.getDelta();
+
+            controls.update();
+
+            // Earth Rotation
+            const rotationStep = (1 * Math.PI) / config.dayNightCycleDuration * delta;
+            earth.rotation.y += rotationStep;
+
+            // Update Sun Direction in Shader
+            if (earthMaterial.userData.shader) {
+                const sunDirWorld = new THREE.Vector3().copy(sunLight.position).normalize();
+                const sunDirView = sunDirWorld.transformDirection(camera.matrixWorldInverse);
+                earthMaterial.userData.shader.uniforms.sunDirView.value.copy(sunDirView);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+
+    </script>
 </body>
 </html>
