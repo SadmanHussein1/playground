@@ -16,25 +16,34 @@
             height: 100vh;
             display: block;
         }
-        #loading {
+        #overlay {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             color: white;
             font-size: 1.2rem;
-            letter-spacing: 2px;
+            letter-spacing: 4px;
             pointer-events: none;
-            transition: opacity 0.5s ease;
-            text-align: center;
-            background: rgba(0,0,0,0.5);
-            padding: 20px;
-            border-radius: 8px;
+            transition: opacity 1s ease;
+            opacity: 1;
+            z-index: 10;
         }
         #error-msg {
             color: #ff6b6b;
             font-size: 0.8rem;
             margin-top: 10px;
+            letter-spacing: 1px;
+        }
+        .status-text {
+            font-weight: bold;
+            text-transform: uppercase;
         }
     </style>
     <!-- Import Map -->
@@ -49,10 +58,12 @@
 </head>
 <body>
 
-    <div id="loading">
-        LOADING UNIVERSE...
+    <!-- Unified Overlay for Loading and Transitions -->
+    <div id="overlay">
+        <div id="status-msg" class="status-text">LOADING...</div>
         <div id="error-msg"></div>
     </div>
+    
     <div id="canvas-container"></div>
 
     <script type="module">
@@ -61,11 +72,13 @@
 
         // --- Configuration ---
         const config = {
-            rotationSpeed: 0.0, // Earth/Camera rotation disabled
+            rotationSpeed: 0.0, 
             earthRadius: 5,
             displacementScale: 0.525, 
-            // CHANGED: Speed up factor 2 (48s -> 24s)
             dayNightCycleDuration: 24, 
+            // Navigation Thresholds
+            zoomInThreshold: 5.0,   // Triggers surface view
+            zoomOutThreshold: 50.0   // Triggers command center
         };
 
         // --- Scene Setup ---
@@ -87,13 +100,13 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.enablePan = false; 
-        controls.minDistance = 10;   
-        controls.maxDistance = 40;  
-        // CHANGED: Disabled auto rotate of the camera
+        
+        // Ranges: 10 to 40
+        controls.minDistance = 5;    
+        controls.maxDistance = 50;   
+        
         controls.autoRotate = false;
-        controls.zoomSpeed = 2.0;
-
-        // CHANGED: Rotate speed reduced by factor 0.5 (Default is 1.0)
+        controls.zoomSpeed = 1.5;
         controls.rotateSpeed = 0.5;
 
         // --- Lighting ---
@@ -109,17 +122,20 @@
         scene.add(rimLight);
 
         // --- Loading Manager ---
-        const loadingEl = document.getElementById('loading');
+        const overlay = document.getElementById('overlay');
+        const statusMsg = document.getElementById('status-msg');
         const errorEl = document.getElementById('error-msg');
         
         const manager = new THREE.LoadingManager();
         manager.onLoad = function ( ) {
-            loadingEl.style.opacity = 0;
-            setTimeout(() => loadingEl.remove(), 1000);
+            statusMsg.innerText = "SYSTEMS ONLINE";
+            setTimeout(() => {
+                overlay.style.opacity = 0;
+            }, 500);
         };
         manager.onError = function ( url ) {
             console.log( 'Error loading ' + url );
-            errorEl.innerText = "Error loading assets.";
+            errorEl.innerText = "ASSET LOAD ERROR";
         };
 
         const textureLoader = new THREE.TextureLoader(manager);
@@ -138,21 +154,14 @@
         
         const earthMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load(textureURLs.color),
-            
-            // DISPLACEMENT
             displacementMap: textureLoader.load(textureURLs.height),
             displacementScale: config.displacementScale,
             displacementBias: -0.15, 
-            
-            // BUMP
             bumpMap: textureLoader.load(textureURLs.height),
             bumpScale: 0.2, 
-            
-            // SPECULAR
             specularMap: textureLoader.load(textureURLs.specular),
             specular: new THREE.Color(0x222222), 
             shininess: 25, 
-            
             emissiveMap: textureLoader.load(textureURLs.lights),
             emissive: new THREE.Color(0xffcc33), 
             emissiveIntensity: 1, 
@@ -161,53 +170,34 @@
         // Inject Custom Shader Logic (Night Lights)
         earthMaterial.onBeforeCompile = function(shader) {
             shader.uniforms.sunDirView = { value: new THREE.Vector3(0, 0, 1) };
-            
             shader.fragmentShader = 'uniform vec3 sunDirView;\n' + shader.fragmentShader;
-
             shader.fragmentShader = shader.fragmentShader.replace(
                 '#include <emissivemap_fragment>',
                 `
                 #ifdef USE_EMISSIVEMAP
                     vec4 emissiveColor = texture2D( emissiveMap, vMapUv );
-                    
                     vec3 normNormal = normalize(vNormal);
                     vec3 normSunDir = normalize(sunDirView);
-                    
                     float sunDot = dot(normNormal, normSunDir);
-                    
-                    // Twilight mask
                     float nightMask = 1.0 - smoothstep(-0.2, 0.1, sunDot);
-                    
-                    // --- RAW TEXTURE PROCESSING ---
                     vec3 rawLights = emissiveColor.rgb;
-                    
-                    // Thresholding (Anti-Haze)
                     float threshold = 0.25; 
                     vec3 clippedLights = max(vec3(0.0), rawLights - threshold) * (1.0 / (1.0 - threshold));
-                    
-                    // Apply Amber Tint
                     vec3 finalLights = clippedLights * emissive;
-                    
-                    // Output with intensity boost
                     totalEmissiveRadiance = finalLights * nightMask * 6.0; 
                 #endif
                 `
             );
-            
             earthMaterial.userData.shader = shader;
         };
 
         const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-        
-        // Axial Tilt
         earth.rotation.z = 23.4 * Math.PI / 180; 
         earth.rotation.y = -1.5; 
-        
         scene.add(earth);
 
-        // --- Background Stars (Universe) ---
+        // --- Background Stars ---
         const starGeometry = new THREE.SphereGeometry(90, 64, 64);
-        
         const starMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 galaxyTexture: { value: textureLoader.load(textureURLs.galaxy) }
@@ -225,54 +215,61 @@
                 void main() {
                     vec4 texColor = texture2D(galaxyTexture, vUv);
                     vec3 color = texColor.rgb;
-                    
-                    // 1. CRUSH: Raising the power (gamma) hides faint stars and noise
                     color = pow(color, vec3(3.0));
-                    
-                    // 2. DARKEN: Scale down overall brightness
                     color = color * 1.0;
-                    
                     gl_FragColor = vec4(color, 1.0);
                 }
             `,
             side: THREE.BackSide
         });
-
         const starField = new THREE.Mesh(starGeometry, starMaterial);
         scene.add(starField);
 
         // --- Helpers ---
         const clock = new THREE.Clock();
-        
-        // State for sun orbit
         let sunAngle = 0;
+        let isRedirecting = false;
 
         // --- Animation Loop ---
         function animate() {
             requestAnimationFrame(animate);
-            
             const delta = clock.getDelta();
-
+            
             controls.update();
 
-            // 1. Earth Rotation: DISABLED per request
-            // earth.rotation.y += ... 
+            // --- NAVIGATION LOGIC ---
+            if (!isRedirecting) {
+                const distance = camera.position.distanceTo(controls.target);
 
-            // 2. Stars Rotation: ENABLED
+                // 1. Zoom In -> Surface
+                if (distance < config.zoomInThreshold) {
+                    isRedirecting = true;
+                    statusMsg.innerText = "Ready for landing";
+                    overlay.style.opacity = 1; // Fade to black
+                    setTimeout(() => {
+                        window.location.href = 'home.html';
+                    }, 1200);
+                }
+                
+                // 2. Zoom Out -> Command Center
+                else if (distance > config.zoomOutThreshold) {
+                    isRedirecting = true;
+                    statusMsg.innerText = "Ready for takeoff";
+                    overlay.style.opacity = 1; // Fade to black
+                    setTimeout(() => {
+                        window.location.href = 'home.html';
+                    }, 1200);
+                }
+            }
+
+            // Animation
             starField.rotation.y += 0.0005;
-
-            // 3. Sun Rotation (Day/Night Cycle): ENABLED & FASTER
-            // Since Earth is static, we orbit the Sun around the Earth to simulate day/night
             const sunSpeed = (2 * Math.PI) / config.dayNightCycleDuration * delta;
             sunAngle += sunSpeed;
-            
-            // Move sun in a circle around Y axis (roughly)
-            // We adjust Z and X to create the orbit
             const sunDistance = 20;
             sunLight.position.x = Math.cos(sunAngle) * sunDistance;
             sunLight.position.z = Math.sin(sunAngle) * sunDistance;
 
-            // Update Sun Direction in Shader
             if (earthMaterial.userData.shader) {
                 const sunDirWorld = new THREE.Vector3().copy(sunLight.position).normalize();
                 const sunDirView = sunDirWorld.transformDirection(camera.matrixWorldInverse);
