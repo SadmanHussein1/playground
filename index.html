@@ -77,7 +77,7 @@
             displacementScale: 0.525, 
             dayNightCycleDuration: 24, 
             // Navigation Thresholds
-            zoomInThreshold: 5.0,   // Triggers surface view
+            zoomInThreshold: 10.0,   // Triggers surface view
             zoomOutThreshold: 50.0   // Triggers command center
         };
 
@@ -103,7 +103,7 @@
         
         // Ranges: 10 to 40
         controls.minDistance = 5;    
-        controls.maxDistance = 50;   
+        controls.maxDistance = 60;   
         
         controls.autoRotate = false;
         controls.zoomSpeed = 1.5;
@@ -128,7 +128,7 @@
         
         const manager = new THREE.LoadingManager();
         manager.onLoad = function ( ) {
-            statusMsg.innerText = "SYSTEMS ONLINE";
+            statusMsg.innerText = "LOADING...";
             setTimeout(() => {
                 overlay.style.opacity = 0;
             }, 500);
