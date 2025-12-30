@@ -1,7 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio</title>
+    <style>
+        /* --- CSS VARIABLES (Easy to change colors here) --- */
+        :root {
+            --bg-color: #0f172a;       /* Dark Blue/Slate Background */
+            --card-bg: #1e293b;        /* Lighter Slate for cards */
+            --text-main: #f8fafc;      /* Almost White */
+            --text-muted: #94a3b8;     /* Grey text */
+            --accent: #38bdf8;         /* Light Blue Accent (Science/Medical feel) */
+            --nav-height: 60px;
+        }
+
+        /* --- RESET & BASICS --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        a { text-decoration: none; color: inherit; transition: 0.2s; }
+        ul { list-style: none; }
+
+        /* --- NAVIGATION BAR --- */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background: rgba(15, 23, 42, 0.9); /* Semi-transparent */
+            backdrop-filter: blur(10px);       /* Glass effect */
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        /* --- LAYOUT CONTAINERS --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            margin-top: var(--nav-height); /* Prevent content hiding behind nav */
+        }
+
+        /* --- HERO SECTION (Homepage Intro) --- */
+        .hero {
+            text-align: center;
+            padding: 4rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* --- PROJECTS GRID --- */
+        .section-title {
+            margin: 3rem 0 1.5rem 0;
+            font-size: 2rem;
+            border-left: 4px solid var(--accent);
+            padding-left: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        /* --- PROJECT CARD --- */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            border-color: var(--accent);
+        }
+
+        .card-img-placeholder {
+            height: 180px;
+            background: linear-gradient(45deg, #1e293b, #334155);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: rgba(255,255,255,0.1);
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card h3 { margin-bottom: 0.5rem; }
+        
+        .card p { 
+            color: var(--text-muted); 
+            font-size: 0.9rem; 
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: var(--accent);
+            color: #0f172a;
+            font-weight: 600;
+            border-radius: 6px;
+        }
+        
+        .btn:hover { background-color: #7dd3fc; }
+
+        /* --- FOOTER --- */
+        footer {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (max-width: 768px) {
+            .navbar { padding: 0 1rem; }
+            .nav-links { display: none; } /* Hidden on mobile for simplicity */
+            .hero h1 { font-size: 2rem; }
+        }
+    </style>
 </head>
 <body>
-    <h1>test123</h1>
+
+    <!-- TOPBAR -->
+    <nav class="navbar">
+        <div class="logo">MyPortfolio</div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div class="container" id="home">
+        
+        <!-- HERO -->
+        <section class="hero">
+            <h1>Welcome.</h1>
+            <p>I am a Medical Student based in Bern. Exploring the intersection of Medicine, Science, and Technology.</p>
+        </section>
+
+        <!-- PROJECTS SECTION -->
+        <h2 class="section-title" id="projects">My Projects</h2>
+        
+        <div class="grid">
+
+            <!-- PROJECT 1: EARTH MAP -->
+            <!-- Instructions: Ensure your earth map file is named 'earth.html' in the repo -->
+            <article class="card">
+                <div class="card-img-placeholder">🌍</div>
+                <div class="card-content">
+                    <h3>Interactive 3D Earth</h3>
+                    <p>A WebGL simulation using Three.js. Features day/night cycles, topography, and touch controls.</p>
+                    <a href="earth.html" class="btn">Launch Project</a>
+                </div>
+            </article>
+
+            <!-- PROJECT 2: Placeholder -->
+            <article class="card">
+                <div class="card-img-placeholder">🧬</div>
+                <div class="card-content">
+                    <h3>Medical Data Viz</h3>
+                    <p>Coming soon. A visualization of anatomical structures using data-driven documents.</p>
+                    <a href="#" class="btn" style="opacity: 0.5; pointer-events: none;">Coming Soon</a>
+                </div>
+            </article>
+
+            <!-- PROJECT 3: Placeholder -->
+            <article class="card">
+                <div class="card-img-placeholder">📈</div>
+                <div class="card-content">
+                    <h3>Finance Tracker</h3>
+                    <p>Analysis of market trends using Python and JavaScript charting libraries.</p>
+                    <a href="#" class="btn" style="opacity: 0.5; pointer-events: none;">Coming Soon</a>
+                </div>
+            </article>
+
+        </div>
+
+        <!-- ABOUT SECTION -->
+        <h2 class="section-title" id="about">About Me</h2>
+        <div style="background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <p style="margin-bottom: 1rem;">
+                Currently studying medicine in Switzerland. I use coding to better understand complex systems, 
+                from human anatomy to global geography.
+            </p>
+            <p style="color: var(--text-muted);">
+                Technologies: HTML, CSS, JavaScript, Python, MacOS.
+            </p>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>&copy; 2025 Bern, Switzerland.</p>
+    </footer>
+
 </body>
 </html>
